@@ -1,10 +1,17 @@
-import { PortableText, type SanityDocument } from "next-sanity";
+import { PortableText, type SanityDocument,groq } from "next-sanity";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "../sanity/client";
 import Link from "next/link";
 
-const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]`;
+const POST_QUERY = groq`*[_type == "post" && slug.current == $slug][0]`;
+export async function generateStaticParams() {
+  const slugs = await client.fetch(
+    groq`*[_type == "post" && defined(slug.current)]{ "slug": slug.current }`
+  )
+
+  return slugs.map((s: any) => ({ slug: s.slug }))
+}
 
 const { projectId, dataset } = client.config();
 const urlFor = (source: SanityImageSource) =>
